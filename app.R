@@ -1,16 +1,18 @@
 #### GeoPT common Shiny App for GeoPT participants ###
-# 20190403
+# 20190813
 # Thomas Meisel
 
+
+## future changes: analyte list needs to be coupled with round selection
 
 library(tidyverse)
 library(shiny)
 library(data.table)
 library(googlesheets) # for loading the GeoPT data from Google drive
 library(stringr) #for combining letters and numbers for lab selection
-library(plotflow) # needed for reorder in plots
+#library(plotflow) # needed for reorder in plots
 #library(readxl) # for Excel import
-#library(readr) # delimited csv import
+library(readr) # delimited csv import
 
 
 loadData1 <- function() {
@@ -403,44 +405,44 @@ server = function(input, output){
     name <- GeoPT_assigned_values[round == input$round.select & analyte == input$xcol, name,]
     sample <- GeoPT_assigned_values[round == input$round.select & analyte == input$xcol, sample,]
     
-    ggplot(reorder_by(method, ~measurand, df, median), aes(method, measurand)) +
-      #annotate("text", x=-Inf, y=Inf , hjust= 0, vjust= 1.5, label = round, size=8, colour="grey40") +        #round
-      #annotate("text", x=-Inf, y=Inf , hjust= 0, vjust= 3.0, label = analyte, size=10, colour="darkgreen") +  #"analyte"
-      #annotate("text", x=-Inf, y=Inf , hjust= 0, vjust= 8, label = sample, size=5, colour="grey50") +         #sample
-      geom_hline(yintercept =  x + 2*horwitz, colour = "gray20", linetype="solid") + # horwitz
-      geom_hline(yintercept =  x -  2*horwitz, colour="gray20", linetype="solid") + # horwitz
-      geom_hline(yintercept =  x + 4*horwitz, colour = "gray70", linetype="solid") + # horwitz*2
-      geom_hline(yintercept =  x - 4*horwitz, colour="gray70", linetype="solid") + # horwitz*2
-      geom_hline(yintercept = x, colour="aquamarine3") + # median
-      geom_violin(scale = "count") +
-      geom_jitter(aes(fill=prep), size = 5, alpha = .8, 
-                  position = position_jitter(width = .15), shape=21) +
-      stat_summary(fun.y=median, geom="point", fill="white", shape=21, size=3.5) +
-      ggtitle(name) +
-      ylab(unit) + 
-      labs(colour = "prep") +
-      scale_fill_manual(values=c(AD="#a50026",
-                                 AD_FM="#abd9e9",
-                                 CB="#fee090",
-                                 FA="black",
-                                 FD="#313695", 
-                                 FM="#4575b4",
-                                 FM_AD="#74add1",
-                                 NO="#dfc27d",
-                                 other="#80cdc1",
-                                 PF="gray50",
-                                 PP="#d73027",
-                                 PY="gray50",
-                                 SD="#f46d43",
-                                 SI="#fdae61")) +
-      theme_bw() +
-      theme(axis.text.x = element_text(angle=45, hjust=1, vjust=1, size = rel(1.2))) +
-      theme(plot.title = element_text(colour = "blue", size = 25)) + # for title appearance
-      theme(legend.text=element_text(size=rel(1.2))) +
-      theme(legend.position="top") +
-      theme(plot.title = element_text(colour = "blue", size = 25)) # for format of title
-    
-  })
+  ggplot(df, aes(reorder(method, measurand), measurand)) + ##"reorder_by" does not work with version 3.6.1
+    #annotate("text", x=-Inf, y=Inf , hjust= 0, vjust= 1.5, label = round, size=8, colour="grey40") +        #round
+    #annotate("text", x=-Inf, y=Inf , hjust= 0, vjust= 3.0, label = analyte, size=10, colour="darkgreen") +  #"analyte"
+    #annotate("text", x=-Inf, y=Inf , hjust= 0, vjust= 8, label = sample, size=5, colour="grey50") +         #sample
+    geom_hline(yintercept =  x + 2*horwitz, colour = "gray20", linetype="solid") + # horwitz
+    geom_hline(yintercept =  x -  2*horwitz, colour="gray20", linetype="solid") + # horwitz
+    geom_hline(yintercept =  x + 4*horwitz, colour = "gray70", linetype="solid") + # horwitz*2
+    geom_hline(yintercept =  x - 4*horwitz, colour="gray70", linetype="solid") + # horwitz*2
+    geom_hline(yintercept = x, colour="aquamarine3") + # median
+    geom_violin(scale = "count") +
+    geom_jitter(aes(fill=prep), size = 5, alpha = .8, 
+                position = position_jitter(width = .15), shape=21) +
+    stat_summary(fun.y=median, geom="point", fill="white", shape=21, size=3.5) +
+    ggtitle(name) +
+    ylab(unit) + 
+    labs(colour = "prep") +
+    scale_fill_manual(values=c(AD="#a50026",
+                               AD_FM="#abd9e9",
+                               CB="#fee090",
+                               FA="black",
+                               FD="#313695", 
+                               FM="#4575b4",
+                               FM_AD="#74add1",
+                               NO="#dfc27d",
+                               other="#80cdc1",
+                               PF="gray50",
+                               PP="#d73027",
+                               PY="gray50",
+                               SD="#f46d43",
+                               SI="#fdae61")) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle=45, hjust=1, vjust=1, size = rel(1.2))) +
+    theme(plot.title = element_text(colour = "blue", size = 25)) + # for title appearance
+    theme(legend.text=element_text(size=rel(1.2))) +
+    theme(legend.position="top") +
+    theme(plot.title = element_text(colour = "blue", size = 25)) # for format of title
+  
+})
   
   output$plot_violin2 <- renderPlot({                 #### violin prep plot
     
@@ -471,7 +473,7 @@ server = function(input, output){
     name <- GeoPT_assigned_values[round == input$round.select & analyte == input$xcol, name,]
     sample <- GeoPT_assigned_values[round == input$round.select & analyte == input$xcol, sample,]
     
-    ggplot(reorder_by(method, ~measurand, df, median), aes(prep, measurand)) +
+    ggplot(df, aes(reorder(method, measurand), measurand)) +
       geom_hline(yintercept =  x + 2*horwitz, colour = "gray20", linetype="solid") + # horwitz
       geom_hline(yintercept =  x -  2*horwitz, colour="gray20", linetype="solid") + # horwitz
       geom_hline(yintercept =  x + 4*horwitz, colour = "gray70", linetype="solid") + # horwitz*2
